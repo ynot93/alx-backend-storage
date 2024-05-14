@@ -20,14 +20,14 @@ def get_nginx_log_stats(mongo_collection):
     status_count = mongo_collection.count_documents({"method": "GET", "path": "/status"})
 
 
-    print(f"{docs_count} logs")
-    print(f"Methods:")
-    print(f"\t method GET: {get_count}")
-    print(f"\t method POST: {post_count}")
-    print(f"\t method PUT: {put_count}")
-    print(f"\t method PATCH: {patch_count}")
-    print(f"\t method DELETE: {delete_count}")
-    print(f"{status_count} status check")
+    print("{} logs".format(docs_count))
+    print("Methods:")
+    print("\t method GET: {}".format(get_count))
+    print("\t method POST: {}".format(post_count))
+    print("\t method PUT: {}".format(put_count))
+    print("\t method PATCH: {}".format(patch_count))
+    print("\t method DELETE: {}".format(delete_count))
+    print("{} status check".format(status_count))
 
 
 if __name__ == "__main__":

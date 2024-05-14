@@ -11,6 +11,6 @@ def schools_by_topic(mongo_collection, topic):
 
     """
     results = list(mongo_collection.find(
-        {"topic": topic}
+        {"topics": topic}
     ))
     return results

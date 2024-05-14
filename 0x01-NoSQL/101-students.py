@@ -22,4 +22,4 @@ def top_students(mongo_collection):
             "$sort": { "averageScore": -1 }
         }
     ]
-    return mongo_collection.aggregate(pipeline)
+    return list(mongo_collection.aggregate(pipeline))

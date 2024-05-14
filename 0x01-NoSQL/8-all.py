@@ -3,7 +3,6 @@
 This module performs CRUD functions on MongoDB
 
 """
-import pymongo
 
 
 def list_all(mongo_collection):
@@ -11,4 +10,8 @@ def list_all(mongo_collection):
     List all documents in a collection
 
     """
-    mongo_collection.find()
+    if not mongo_collection:
+        return []
+
+    result = [mongo_collection.find()]
+    return result

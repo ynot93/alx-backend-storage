@@ -13,5 +13,5 @@ def list_all(mongo_collection):
     if not mongo_collection:
         return []
 
-    result = [mongo_collection.find()]
+    result = list(mongo_collection.find())
     return result

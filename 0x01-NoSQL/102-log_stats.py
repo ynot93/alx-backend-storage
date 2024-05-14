@@ -32,7 +32,7 @@ def log_stats():
         {"$sort": {"count": -1}},
         {"$limit": 10}
     ]
-    ips = list(mongo_collection.aggregate(pipeline))
+    ips = list(collection.aggregate(pipeline))
 
     print("IPs:")
     for ip in ips:

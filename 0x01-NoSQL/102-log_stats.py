@@ -21,13 +21,24 @@ def get_nginx_log_stats(mongo_collection):
 
 
     print(f"{docs_count} logs")
-    print(f"Methods:")
+    print("Methods:")
     print(f"\tmethod GET: {get_count}")
     print(f"\tmethod POST: {post_count}")
     print(f"\tmethod PUT: {put_count}")
     print(f"\tmethod PATCH: {patch_count}")
     print(f"\tmethod DELETE: {delete_count}")
     print(f"{status_count} status check")
+
+    pipeline = [
+        {"group": {"_id": "$ip", "count": { "$sum": 1 }}},
+        {"sort": {"count": -1}},
+        {"limit": 10}
+    ]
+    ips = list(mongo_collection.aggregate(pipeline))
+
+    print("IPs:")
+    for ip in ips:
+        print(f"\t{ip['_id']}: {ip['count']}")
 
 
 if __name__ == "__main__":

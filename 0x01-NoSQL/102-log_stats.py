@@ -6,33 +6,31 @@ This module performs CRUD functions on MongoDB
 from pymongo import MongoClient
 
 
-def get_nginx_log_stats(mongo_collection):
+def log_stats():
     """
-    Gets and formats stats of the nginx logs provided
+    Formats stats of nginx log provided
 
     """
-    docs_count = mongo_collection.count_documents({})
-    get_count = mongo_collection.count_documents({"method": "GET"})
-    post_count = mongo_collection.count_documents({"method": "POST"})
-    put_count = mongo_collection.count_documents({"method": "PUT"})
-    patch_count = mongo_collection.count_documents({"method": "PATCH"})
-    delete_count = mongo_collection.count_documents({"method": "DELETE"})
-    status_count = mongo_collection.count_documents({"method": "GET", "path": "/status"})
+    client = MongoClient()
+    db = client.logs
+    collection = db.nginx
 
+    total_logs = collection.count_documents({})
+    print(f"{total_logs} logs")
 
-    print(f"{docs_count} logs")
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     print("Methods:")
-    print(f"\tmethod GET: {get_count}")
-    print(f"\tmethod POST: {post_count}")
-    print(f"\tmethod PUT: {put_count}")
-    print(f"\tmethod PATCH: {patch_count}")
-    print(f"\tmethod DELETE: {delete_count}")
-    print(f"{status_count} status check")
+    for method in methods:
+        method_count = collection.count_documents({"method": method})
+        print(f"\tmethod {method}: {method_count}")
+
+    status_check_count = collection.count_documents({"method": "GET", "path": "/status"})
+    print(f"{status_check_count} status check")
 
     pipeline = [
-        {"group": {"_id": "$ip", "count": { "$sum": 1 }}},
-        {"sort": {"count": -1}},
-        {"limit": 10}
+        {"$group": {"_id": "$ip", "count": { "$sum": 1 }}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
     ]
     ips = list(mongo_collection.aggregate(pipeline))
 
@@ -42,8 +40,4 @@ def get_nginx_log_stats(mongo_collection):
 
 
 if __name__ == "__main__":
-    client = MongoClient('mongodb://127.0.0.1:27017')
-    nginx_collection = client.logs.nginx
-    
-    get_nginx_log_stats(nginx_collection)
-    
+    log_stats()

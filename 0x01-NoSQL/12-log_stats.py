@@ -1,38 +1,33 @@
 #!/usr/bin/env python3
 """
-This module performs CRUD functions on MongoDB
+This module dels with CRUD operations on MongoDB
 
 """
 from pymongo import MongoClient
 
 
-def get_nginx_log_stats(mongo_collection):
+def log_stats():
     """
-    Gets and formats stats of the nginx logs provided
+    Formats stats of nginx log provided
 
     """
-    docs_count = mongo_collection.count_documents({})
-    get_count = mongo_collection.count_documents({"method": "GET"})
-    post_count = mongo_collection.count_documents({"method": "POST"})
-    put_count = mongo_collection.count_documents({"method": "PUT"})
-    patch_count = mongo_collection.count_documents({"method": "PATCH"})
-    delete_count = mongo_collection.count_documents({"method": "DELETE"})
-    status_count = mongo_collection.count_documents({"method": "GET", "path": "/status"})
+    client = MongoClient()
+    db = client.logs
+    collection = db.nginx
 
+    total_logs = collection.count_documents({})
+    print(f"{total_logs} logs")
 
-    print("{} logs".format(docs_count))
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     print("Methods:")
-    print("\t method GET: {}".format(get_count))
-    print("\t method POST: {}".format(post_count))
-    print("\t method PUT: {}".format(put_count))
-    print("\t method PATCH: {}".format(patch_count))
-    print("\t method DELETE: {}".format(delete_count))
-    print("{} status check".format(status_count))
+    for method in methods:
+        method_count = collection.count_documents({"method": method})
+        print(f"\tmethod {method}: {method_count}")
+
+    status_check_count = collection.count_documents({"method": "GET", "path": "/status"})
+    print(f"{status_check_count} status check")
 
 
 if __name__ == "__main__":
-    client = MongoClient('mongodb://127.0.0.1:27017')
-    nginx_collection = client.logs.nginx
-    
-    get_nginx_log_stats(nginx_collection)
-    
+    log_stats()
+

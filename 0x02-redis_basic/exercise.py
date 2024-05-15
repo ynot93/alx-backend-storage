@@ -10,7 +10,7 @@ import functools
 
 def count_calls(method: Callable) -> Callable:
     """
-    Decorator that counts the number of calls to the method provided
+    This decorator counts the number of calls to the method provided
 
     """
     @functools.wraps(method)
@@ -20,6 +20,25 @@ def count_calls(method: Callable) -> Callable:
         return method(self, *args, **kwargs)
     return wrapper
 
+def call_history(method: Callable) -> Callable:
+    """
+    This decorator stores the history of inputs and outputs of a function
+
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        input_key = f"{method.__qualname__}:inputs"
+        output_key = f"{method.__qualname__}:outputs"
+        
+        self._redis.rpush(input_key, str(args))
+        
+        result = method(self, *args, **kwargs)
+        
+        self._redis.rpush(output_key, str(result))
+        
+        return result
+    
+    return wrapper
 
 class Cache:
     """

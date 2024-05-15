@@ -3,40 +3,40 @@
 This module deals with the basic operations in Redis
 
 """
+import redis
 import requests
-import time
-import functools
+from functools import wraps
+from typing import Callable
+
+redis_store = redis.Redis()
 
 
-def cache_with_expiry(duration):
-    def decorator_cache(func):
-        cache = {}
+def cache_response(method: Callable) -> Callable:
+    """
+    This decorator to cache the response of fetched data
 
-        @functools.wraps(func)
-        def wrapper_cache(url):
-            if url in cache:
-                timestamp, result = cache[url]
-                if time.time() - timestamp < duration:
-                    return result
-            result = func(url)
-            cache[url] = (time.time(), result)
-            return result
+    """
+    @wraps(method)
+    def wrapper(url: str) -> str:
+        """
+        Wrapper function to cache the output
 
-        return wrapper_cache
+        """
+        redis_store.incr(f'access_count:{url}')
+        result = redis_store.get(f'result:{url}')
+        if result:
+            return result.decode('utf-8')
 
-    return decorator_cache
+        result = method(url)
+        redis_store.setex(f'result:{url}', 10, result)
 
-def track_url_access(func):
-    access_count = {}
+        return result
+    return wrapper
 
-    @functools.wraps(func)
-    def wrapper_track_url_access(url):
-        access_count[url] = access_count.get(url, 0) + 1
-        return func(url)
+@cache_response
+def get_page(url: str) -> str:
+    """
+    Fetches the content of a URL and caches the response
 
-    return wrapper_track_url_access
-
-@track_url_access
-@cache_with_expiry(10)
-def get_page(url):
+    """
     return requests.get(url).text

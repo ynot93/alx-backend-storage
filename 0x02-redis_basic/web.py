@@ -22,16 +22,18 @@ def cache_response(method: Callable) -> Callable:
         Wrapper function to cache the output
 
         """
-        redis_store.incr(f'access_count:{url}')
+        redis_store.incr(f'count:{url}')
         result = redis_store.get(f'result:{url}')
         if result:
             return result.decode('utf-8')
 
         result = method(url)
+        redis_store.set(f'count:{url}', 0)
         redis_store.setex(f'result:{url}', 10, result)
 
         return result
     return wrapper
+
 
 @cache_response
 def get_page(url: str) -> str:

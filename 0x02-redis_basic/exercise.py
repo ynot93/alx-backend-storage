@@ -29,15 +29,11 @@ def call_history(method: Callable) -> Callable:
     def wrapper(self, *args, **kwargs):
         input_key = f"{method.__qualname__}:inputs"
         output_key = f"{method.__qualname__}:outputs"
-        
         self._redis.rpush(input_key, str(args))
-        
         result = method(self, *args, **kwargs)
-        
         self._redis.rpush(output_key, str(result))
-        
         return result
-    
+
     return wrapper
 
 class Cache:
@@ -54,6 +50,7 @@ class Cache:
         self._redis.flushdb()
 
     @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Uses random key to store data in redis
@@ -88,3 +85,21 @@ class Cache:
 
         """
         return self.get(key, fn=int)
+
+def replay(method: Callable) -> None:
+    """
+    Displays the history of calls of a particular function
+
+    """
+    redis_instance = method.__self__._redis
+    qualname = method.__qualname__
+
+    input_key = f"{qualname}:inputs"
+    output_key = f"{qualname}:outputs"
+
+    inputs = redis_instance.lrange(input_key, 0, -1)
+    outputs = redis_instance.lrange(output_key, 0, -1)
+    print(f"{qualname} was called {len(inputs)} times:")
+
+    for inp, out in zip(inputs, outputs):
+        print(f"{qualname}(*{inp.decode('utf-8')}) -> {out.decode('utf-8')}")
